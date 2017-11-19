@@ -15,10 +15,11 @@ public class UTestSecManager {
      */
     @Test
     public void testSeqManagerWorking() throws Exception {
-//        System.setProperty("java.security.policy", "src/main/dist/config/policy.all");
-        System.out.println("Starting");
+        //there is no need for this policy file since the new security manager will be override the neccessary
+        //check permission methods.
+        System.setProperty("java.security.policy", "src/main/dist/policy.all");
 
-        System.out.println("set sec manager");
+        //This creates a new SecurityManager that will basically allow anything which of course is very insecure
         System.setSecurityManager(new SecurityManager() {
             @Override
             public void checkPermission(Permission perm) {
@@ -27,39 +28,33 @@ public class UTestSecManager {
             @Override
             public void checkPermission(Permission perm, Object context) {
             }
-
-            @Override
-            public void checkExit(int status) {
-                String message = "System exit requested with error " + status;
-                throw new SecurityException(message);
-            }
         });
         try {
             System.setProperty("TestProperty", "value");
         } catch (AccessControlException ex) {
             System.out.println(ex);
         }
-        System.out.println("set property");
+        System.setProperty("AnotherProperty", "value");
         Assert.assertEquals(0,0);
     }
 
     /**
-     * This unit test will fail
+     * This unit test will fail if run from Gradle
      * @throws Exception
      */
     @Test
     public void testSeqManagerNOTWorking() throws Exception {
-        //        System.setProperty("java.security.policy", "src/main/dist/config/policy.all");
-        System.out.println("Starting");
+        System.setProperty("java.security.policy", "src/main/dist/policy.all");
         System.setSecurityManager(new SecurityManager());
 
-        System.out.println("set sec manager");
         try {
+            //This will print out a AccessControlException if run from Gradle but will run fine in IntelliJ
             System.setProperty("TestProperty", "value");
         } catch (AccessControlException ex) {
             System.out.println(ex);
         }
-        System.out.println("set property");
+        //the following line will cause the unit tast to hang if run from Gradle otherwise it will run fine
+        System.setProperty("AnotherProperty", "value");
         Assert.assertEquals(0,0);
     }
 }
